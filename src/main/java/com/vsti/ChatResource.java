@@ -1,7 +1,6 @@
 package com.vsti;
 
 import io.quarkus.qute.Template;
-import io.quarkus.qute.TemplateInstance;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
@@ -15,6 +14,9 @@ public class ChatResource {
     @Inject
     Template message;
 
+    @Inject
+    ChatAiService aiService;
+
     @GET
     @Produces(MediaType.TEXT_HTML)
     public String index() {
@@ -26,7 +28,7 @@ public class ChatResource {
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     @Produces(MediaType.TEXT_HTML)
     public String sendMessage(@FormParam("message") String userMessage) {
-        String botResponse = "You said: " + userMessage;
+        String botResponse = aiService.chat(userMessage);
         return message.data("userMessage", userMessage).data("botResponse", botResponse).render();
     }
 }
