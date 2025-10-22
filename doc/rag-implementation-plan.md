@@ -22,10 +22,10 @@ Extend existing Quarkus + LangChain4j + Ollama chat application with RAG (Retrie
 - [x] Create embedding service using Ollama
 - [x] Build vector store integration with Chroma
 
-### Step 3: File Upload Endpoint ⏳
-- [ ] REST endpoint for multi-file upload with progress tracking
-- [ ] Background processing with WebSocket progress updates
-- [ ] Document metadata storage (filename, upload date, chunk count)
+### Step 3: File Upload Endpoint ✅
+- [x] REST endpoint for multi-file upload with progress tracking
+- [x] Background processing with WebSocket progress updates
+- [x] Document metadata storage (filename, upload date, chunk count)
 
 ### Step 4: RAG Integration ⏳
 - [ ] Modify existing chat service to include vector search
