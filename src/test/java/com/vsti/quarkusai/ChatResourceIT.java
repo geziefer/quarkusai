@@ -1,4 +1,4 @@
-package com.vsti;
+package com.vsti.quarkusai;
 
 import io.quarkus.test.junit.QuarkusIntegrationTest;
 

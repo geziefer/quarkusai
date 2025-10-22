@@ -1,4 +1,4 @@
-package com.vsti;
+package com.vsti.quarkusai;
 
 import dev.langchain4j.service.UserMessage;
 import io.quarkiverse.langchain4j.RegisterAiService;
