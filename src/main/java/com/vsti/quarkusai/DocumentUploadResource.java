@@ -1,5 +1,6 @@
 package com.vsti.quarkusai;
 
+import io.quarkus.qute.Template;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
@@ -15,6 +16,9 @@ public class DocumentUploadResource {
 
     @Inject
     DocumentProcessingService documentService;
+
+    @Inject
+    Template documents;
 
     @POST
     @Path("/upload")
@@ -53,6 +57,13 @@ public class DocumentUploadResource {
     @Produces(MediaType.APPLICATION_JSON)
     public List<DocumentMetadata> listDocuments() {
         return documentService.getAllDocuments();
+    }
+
+    @GET
+    @Path("/list")
+    @Produces(MediaType.TEXT_HTML)
+    public String listDocumentsHtml() {
+        return documents.data("documents", documentService.getAllDocuments()).render();
     }
 
     @DELETE

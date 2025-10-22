@@ -1,3 +1,10 @@
 <div class="message bot-message">
-    <div class="message-content">{botResponse}</div>
+    <div class="message-content">
+        {botResponse}
+        {#if sources && !sources.isEmpty}
+        <div class="sources">
+            <small><strong>Sources:</strong> {sources.join(', ')}</small>
+        </div>
+        {/if}
+    </div>
 </div>

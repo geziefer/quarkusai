@@ -32,11 +32,11 @@ Extend existing Quarkus + LangChain4j + Ollama chat application with RAG (Retrie
 - [x] Implement similarity search before LLM query
 - [x] Add document references to chat responses
 
-### Step 5: UI Enhancements ⏳
-- [ ] Add file upload component with progress bar
-- [ ] Display uploaded documents list
-- [ ] Add delete functionality for documents
-- [ ] Show document sources in chat responses
+### Step 5: UI Enhancements ✅
+- [x] Add file upload component with progress bar
+- [x] Display uploaded documents list
+- [x] Add delete functionality for documents
+- [x] Show document sources in chat responses
 
 ### Step 6: Document Management ⏳
 - [ ] REST endpoints for listing/deleting documents

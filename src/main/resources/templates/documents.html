@@ -1,0 +1,13 @@
+{#if documents.isEmpty}
+<div>No documents uploaded yet.</div>
+{#else}
+{#for doc in documents}
+<div class="document-item">
+    <div>
+        <strong>{doc.filename}</strong><br>
+        <small>{doc.chunkCount} chunks, uploaded {doc.uploadedAt.toLocalDate}</small>
+    </div>
+    <button class="delete-button" hx-delete="/documents/{doc.id}" hx-target="closest .document-item" hx-swap="outerHTML">Delete</button>
+</div>
+{/for}
+{/if}

@@ -4,7 +4,10 @@
     <title>Quarkus AI Chat</title>
     <script src="https://unpkg.com/htmx.org@1.9.10"></script>
     <style>
-        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        body { font-family: Arial, sans-serif; max-width: 1000px; margin: 0 auto; padding: 20px; }
+        .container { display: flex; gap: 20px; }
+        .chat-section { flex: 2; }
+        .documents-section { flex: 1; border: 1px solid #ddd; border-radius: 8px; padding: 15px; }
         #chat-container { border: 1px solid #ddd; border-radius: 8px; height: 400px; overflow-y: auto; padding: 10px; margin-bottom: 20px; }
         .message { margin: 10px 0; display: flex; }
         .user-message { justify-content: flex-end; }
@@ -12,10 +15,20 @@
         .message-content { max-width: 70%; padding: 10px; border-radius: 10px; }
         .user-message .message-content { background-color: #007bff; color: white; }
         .bot-message .message-content { background-color: #f1f1f1; color: black; }
+        .sources { margin-top: 8px; padding-top: 8px; border-top: 1px solid #ddd; color: #666; }
         #message-form { display: flex; gap: 10px; }
         #message-input { flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 4px; }
         #send-button { padding: 10px 20px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
         #send-button:hover { background-color: #0056b3; }
+        .upload-section { margin-bottom: 20px; }
+        .upload-form { display: flex; flex-direction: column; gap: 10px; }
+        .file-input { padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
+        .upload-button { padding: 8px 16px; background-color: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        .upload-button:hover { background-color: #218838; }
+        .document-list { margin-top: 15px; }
+        .document-item { display: flex; justify-content: space-between; align-items: center; padding: 8px; border: 1px solid #eee; border-radius: 4px; margin-bottom: 5px; }
+        .delete-button { background-color: #dc3545; color: white; border: none; border-radius: 3px; padding: 4px 8px; cursor: pointer; font-size: 12px; }
+        .delete-button:hover { background-color: #c82333; }
         .loading {
             display: inline-block;
             position: relative;
@@ -37,14 +50,34 @@
     </style>
 </head>
 <body>
-    <h1>Quarkus AI Chat</h1>
-    <div id="chat-container">
-        <div id="messages"></div>
+    <h1>Quarkus AI Chat with RAG</h1>
+    <div class="container">
+        <div class="chat-section">
+            <div id="chat-container">
+                <div id="messages"></div>
+            </div>
+            <form id="message-form" hx-post="/chat" hx-target="#messages" hx-swap="beforeend">
+                <input type="text" id="message-input" name="message" placeholder="Type your message..." required autofocus>
+                <button type="submit" id="send-button">Send</button>
+            </form>
+        </div>
+        
+        <div class="documents-section">
+            <h3>Documents</h3>
+            <div class="upload-section">
+                <form class="upload-form" hx-post="/documents/upload" hx-target="#upload-result" hx-swap="innerHTML">
+                    <input type="file" name="files" class="file-input" multiple accept=".txt,.pdf,.doc,.docx">
+                    <button type="submit" class="upload-button">Upload Documents</button>
+                </form>
+                <div id="upload-result"></div>
+            </div>
+            
+            <div class="document-list" hx-get="/documents/list" hx-trigger="load, upload-success from:body" hx-target="this" hx-swap="innerHTML">
+                Loading documents...
+            </div>
+        </div>
     </div>
-    <form id="message-form" hx-post="/chat" hx-target="#messages" hx-swap="beforeend">
-        <input type="text" id="message-input" name="message" placeholder="Type your message..." required autofocus>
-        <button type="submit" id="send-button">Send</button>
-    </form>
+
     <script>
         document.getElementById('message-form').addEventListener('submit', function(e) {
             const messageInput = document.getElementById('message-input');
@@ -85,6 +118,17 @@
             document.getElementById('message-input').value = '';
             document.getElementById('message-input').focus();
             document.getElementById('chat-container').scrollTop = document.getElementById('chat-container').scrollHeight;
+        });
+
+        // Handle upload success
+        document.body.addEventListener('htmx:afterRequest', function(event) {
+            if (event.detail.xhr.status === 200 && event.target.matches('.upload-form')) {
+                document.body.dispatchEvent(new CustomEvent('upload-success'));
+                document.getElementById('upload-result').innerHTML = '<div style="color: green; margin-top: 10px;">Upload successful!</div>';
+                setTimeout(() => {
+                    document.getElementById('upload-result').innerHTML = '';
+                }, 3000);
+            }
         });
     </script>
 </body>
