@@ -38,9 +38,9 @@ Extend existing Quarkus + LangChain4j + Ollama chat application with RAG (Retrie
 - [x] Add delete functionality for documents
 - [x] Show document sources in chat responses
 
-### Step 6: Document Management ⏳
-- [ ] REST endpoints for listing/deleting documents
-- [ ] Remove document chunks from vector store on deletion
+### Step 6: Document Management ✅
+- [x] REST endpoints for listing/deleting documents
+- [x] Remove document chunks from vector store on deletion
 
 ### Step 7: Docker Containerization ⏳
 - [ ] Create docker-compose.yml with Ollama, Chroma, and application

@@ -31,6 +31,7 @@ public class DocumentProcessingService {
     private final Tika tika = new Tika();
     private final DocumentSplitter splitter = DocumentSplitters.recursive(500, 50);
     private final ConcurrentMap<String, DocumentMetadata> documents = new ConcurrentHashMap<>();
+    private final ConcurrentMap<String, List<String>> documentSegmentIds = new ConcurrentHashMap<>();
 
     public DocumentMetadata processDocument(String filename, String contentType, long size, InputStream inputStream) throws IOException {
         String documentId = UUID.randomUUID().toString();
@@ -49,7 +50,10 @@ public class DocumentProcessingService {
             
             // Generate embeddings and store
             List<Embedding> embeddings = embeddingModel.embedAll(segments).content();
-            embeddingStore.addAll(embeddings, segments);
+            List<String> segmentIds = embeddingStore.addAll(embeddings, segments);
+            
+            // Track segment IDs for deletion
+            documentSegmentIds.put(documentId, segmentIds);
             
             // Create and store metadata
             DocumentMetadata metadata = DocumentMetadata.create(documentId, filename, contentType, size)
@@ -68,9 +72,11 @@ public class DocumentProcessingService {
 
     public boolean deleteDocument(String documentId) {
         DocumentMetadata metadata = documents.remove(documentId);
-        if (metadata != null) {
-            // Remove from vector store (simplified - in practice you'd need to track segment IDs)
-            // This is a limitation of the current approach - we'll address it later
+        List<String> segmentIds = documentSegmentIds.remove(documentId);
+        
+        if (metadata != null && segmentIds != null) {
+            // Remove segments from vector store
+            segmentIds.forEach(embeddingStore::remove);
             return true;
         }
         return false;
