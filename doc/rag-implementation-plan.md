@@ -11,10 +11,10 @@ Extend existing Quarkus + LangChain4j + Ollama chat application with RAG (Retrie
 
 ## Implementation Steps
 
-### Step 1: Dependencies & Configuration ⏳
-- [ ] Add LangChain4j vector store, document loaders, and Chroma dependencies
-- [ ] Configure Chroma database path and Ollama embedding model
-- [ ] Set up file upload configuration
+### Step 1: Dependencies & Configuration ✅
+- [x] Add LangChain4j vector store, document loaders, and Chroma dependencies
+- [x] Configure Chroma database path and Ollama embedding model
+- [x] Set up file upload configuration
 
 ### Step 2: Document Processing Service ⏳
 - [ ] Create document parser using Tika
