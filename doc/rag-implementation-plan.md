@@ -27,10 +27,10 @@ Extend existing Quarkus + LangChain4j + Ollama chat application with RAG (Retrie
 - [x] Background processing with WebSocket progress updates
 - [x] Document metadata storage (filename, upload date, chunk count)
 
-### Step 4: RAG Integration ⏳
-- [ ] Modify existing chat service to include vector search
-- [ ] Implement similarity search before LLM query
-- [ ] Add document references to chat responses
+### Step 4: RAG Integration ✅
+- [x] Modify existing chat service to include vector search
+- [x] Implement similarity search before LLM query
+- [x] Add document references to chat responses
 
 ### Step 5: UI Enhancements ⏳
 - [ ] Add file upload component with progress bar

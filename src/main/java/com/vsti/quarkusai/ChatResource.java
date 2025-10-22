@@ -15,7 +15,7 @@ public class ChatResource {
     Template message;
 
     @Inject
-    ChatAiService aiService;
+    RagChatService ragChatService;
 
     @GET
     @Produces(MediaType.TEXT_HTML)
@@ -28,7 +28,10 @@ public class ChatResource {
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     @Produces(MediaType.TEXT_HTML)
     public String sendMessage(@FormParam("message") String userMessage) {
-        String botResponse = aiService.chat(userMessage);
-        return message.data("userMessage", userMessage).data("botResponse", botResponse).render();
+        RagChatService.ChatResponse response = ragChatService.chat(userMessage);
+        return message.data("userMessage", userMessage)
+                     .data("botResponse", response.response())
+                     .data("sources", response.sources())
+                     .render();
     }
 }
