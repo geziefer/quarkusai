@@ -1,0 +1,78 @@
+package com.vsti.quarkusai;
+
+import dev.langchain4j.data.document.Document;
+import dev.langchain4j.data.document.DocumentSplitter;
+import dev.langchain4j.data.document.splitter.DocumentSplitters;
+import dev.langchain4j.data.embedding.Embedding;
+import dev.langchain4j.data.segment.TextSegment;
+import dev.langchain4j.model.embedding.EmbeddingModel;
+import dev.langchain4j.store.embedding.EmbeddingStore;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+import org.apache.tika.Tika;
+import org.apache.tika.exception.TikaException;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+
+@ApplicationScoped
+public class DocumentProcessingService {
+
+    @Inject
+    EmbeddingModel embeddingModel;
+
+    @Inject
+    EmbeddingStore<TextSegment> embeddingStore;
+
+    private final Tika tika = new Tika();
+    private final DocumentSplitter splitter = DocumentSplitters.recursive(500, 50);
+    private final ConcurrentMap<String, DocumentMetadata> documents = new ConcurrentHashMap<>();
+
+    public DocumentMetadata processDocument(String filename, String contentType, long size, InputStream inputStream) throws IOException {
+        String documentId = UUID.randomUUID().toString();
+        
+        try {
+            // Extract text using Tika
+            String content = tika.parseToString(inputStream);
+            
+            // Create document and split into chunks
+            Document document = Document.from(content);
+            List<TextSegment> segments = splitter.split(document);
+            
+            // Add metadata to segments
+            segments.forEach(segment -> segment.metadata().put("documentId", documentId)
+                                               .put("filename", filename));
+            
+            // Generate embeddings and store
+            List<Embedding> embeddings = embeddingModel.embedAll(segments).content();
+            embeddingStore.addAll(embeddings, segments);
+            
+            // Create and store metadata
+            DocumentMetadata metadata = DocumentMetadata.create(documentId, filename, contentType, size)
+                                                       .withChunkCount(segments.size());
+            documents.put(documentId, metadata);
+            
+            return metadata;
+        } catch (TikaException e) {
+            throw new IOException("Failed to parse document content: " + filename, e);
+        }
+    }
+
+    public List<DocumentMetadata> getAllDocuments() {
+        return List.copyOf(documents.values());
+    }
+
+    public boolean deleteDocument(String documentId) {
+        DocumentMetadata metadata = documents.remove(documentId);
+        if (metadata != null) {
+            // Remove from vector store (simplified - in practice you'd need to track segment IDs)
+            // This is a limitation of the current approach - we'll address it later
+            return true;
+        }
+        return false;
+    }
+}

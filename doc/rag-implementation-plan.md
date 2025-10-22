@@ -16,11 +16,11 @@ Extend existing Quarkus + LangChain4j + Ollama chat application with RAG (Retrie
 - [x] Configure Chroma database path and Ollama embedding model
 - [x] Set up file upload configuration
 
-### Step 2: Document Processing Service ⏳
-- [ ] Create document parser using Tika
-- [ ] Implement chunking with RecursiveCharacterTextSplitter
-- [ ] Create embedding service using Ollama
-- [ ] Build vector store integration with Chroma
+### Step 2: Document Processing Service ✅
+- [x] Create document parser using Tika
+- [x] Implement chunking with RecursiveCharacterTextSplitter
+- [x] Create embedding service using Ollama
+- [x] Build vector store integration with Chroma
 
 ### Step 3: File Upload Endpoint ⏳
 - [ ] REST endpoint for multi-file upload with progress tracking
