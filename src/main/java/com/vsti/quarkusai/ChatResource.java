@@ -33,11 +33,10 @@ public class ChatResource {
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     @Produces(MediaType.TEXT_HTML)
     public String sendMessage(@FormParam("message") String userMessage) {
-        // Temporarily bypass RAG to test basic chat
-        String botResponse = aiService.chat(userMessage);
+        RagChatService.ChatResponse response = ragChatService.chat(userMessage);
         return message.data("userMessage", userMessage)
-                     .data("botResponse", botResponse)
-                     .data("sources", List.of()) // Empty sources for now
+                     .data("botResponse", response.response())
+                     .data("sources", response.sources())
                      .render();
     }
 }
