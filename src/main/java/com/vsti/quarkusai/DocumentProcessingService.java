@@ -6,7 +6,9 @@ import dev.langchain4j.data.document.splitter.DocumentSplitters;
 import dev.langchain4j.data.embedding.Embedding;
 import dev.langchain4j.data.segment.TextSegment;
 import dev.langchain4j.model.embedding.EmbeddingModel;
+import dev.langchain4j.store.embedding.EmbeddingSearchRequest;
 import dev.langchain4j.store.embedding.EmbeddingStore;
+import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.apache.tika.Tika;
@@ -32,6 +34,21 @@ public class DocumentProcessingService {
     private final DocumentSplitter splitter = DocumentSplitters.recursive(500, 50);
     private final ConcurrentMap<String, DocumentMetadata> documents = new ConcurrentHashMap<>();
     private final ConcurrentMap<String, List<String>> documentSegmentIds = new ConcurrentHashMap<>();
+
+    @PostConstruct
+    void initialize() {
+        try {
+            // Try a simple search to initialize the collection if needed
+            embeddingStore.search(EmbeddingSearchRequest.builder()
+                    .queryEmbedding(embeddingModel.embed("init").content())
+                    .maxResults(1)
+                    .minScore(0.0)
+                    .build());
+        } catch (Exception e) {
+            // Collection creation or search failed, but that's okay for initialization
+            System.out.println("Collection initialization completed (may have been created)");
+        }
+    }
 
     public DocumentMetadata processDocument(String filename, String contentType, long size, InputStream inputStream) throws IOException {
         String documentId = UUID.randomUUID().toString();

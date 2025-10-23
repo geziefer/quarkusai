@@ -7,6 +7,7 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,33 +24,32 @@ public class DocumentUploadResource {
     @Path("/upload")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response uploadDocuments(MultiFileUploadForm form) {
+    public Response uploadDocument(@FormParam("file") InputStream fileStream,
+                                   @FormParam("filename") String filename) {
         List<DocumentMetadata> results = new ArrayList<>();
         List<String> errors = new ArrayList<>();
 
-        if (form.files != null && form.fileNames != null) {
-            for (int i = 0; i < Math.min(form.files.size(), form.fileNames.size()); i++) {
-                String fileName = form.fileNames.get(i);
-                String contentType = (form.contentTypes != null && i < form.contentTypes.size()) 
-                    ? form.contentTypes.get(i) : "application/octet-stream";
-                
-                if (fileName != null && !fileName.isEmpty()) {
-                    try {
-                        DocumentMetadata metadata = documentService.processDocument(
-                            fileName,
-                            contentType,
-                            0, // Size not available in this approach
-                            form.files.get(i)
-                        );
-                        results.add(metadata);
-                    } catch (IOException e) {
-                        errors.add("Failed to process " + fileName + ": " + e.getMessage());
-                    }
-                }
+        if (fileStream != null && filename != null && !filename.isEmpty()) {
+            try {
+                DocumentMetadata metadata = documentService.processDocument(
+                    filename,
+                    "text/plain", // We could determine this from file extension
+                    0, // Size not available
+                    fileStream
+                );
+                results.add(metadata);
+            } catch (IOException e) {
+                errors.add("Failed to process " + filename + ": " + e.getMessage());
             }
+        } else {
+            errors.add("No file uploaded or filename missing");
         }
 
-        return Response.ok(new UploadResponse(results, errors)).build();
+        // Add success message for UI feedback
+        String message = results.isEmpty() ? "Upload failed" : 
+                        results.size() + " document(s) uploaded successfully";
+
+        return Response.ok(new UploadResponse(results, errors, message)).build();
     }
 
     @GET
@@ -76,5 +76,5 @@ public class DocumentUploadResource {
         }
     }
 
-    public record UploadResponse(List<DocumentMetadata> successful, List<String> errors) {}
+    public record UploadResponse(List<DocumentMetadata> successful, List<String> errors, String message) {}
 }

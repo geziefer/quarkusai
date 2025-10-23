@@ -3,7 +3,11 @@
         {botResponse}
         {#if sources && !sources.isEmpty}
         <div class="sources">
-            <small><strong>Sources:</strong> {sources.join(', ')}</small>
+            <small><strong>Sources:</strong> 
+            {#for source in sources}
+                {source}{#if source_hasNext}, {/if}
+            {/for}
+            </small>
         </div>
         {/if}
     </div>

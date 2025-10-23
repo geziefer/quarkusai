@@ -24,7 +24,8 @@
         .upload-form { display: flex; flex-direction: column; gap: 10px; }
         .file-input { padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
         .upload-button { padding: 8px 16px; background-color: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; }
-        .upload-button:hover { background-color: #218838; }
+        .upload-button:hover:not(:disabled) { background-color: #218838; }
+        .upload-button:disabled { background-color: #6c757d; cursor: not-allowed; }
         .document-list { margin-top: 15px; }
         .document-item { display: flex; justify-content: space-between; align-items: center; padding: 8px; border: 1px solid #eee; border-radius: 4px; margin-bottom: 5px; }
         .delete-button { background-color: #dc3545; color: white; border: none; border-radius: 3px; padding: 4px 8px; cursor: pointer; font-size: 12px; }
@@ -65,9 +66,10 @@
         <div class="documents-section">
             <h3>Documents</h3>
             <div class="upload-section">
-                <form class="upload-form" hx-post="/documents/upload" hx-target="#upload-result" hx-swap="innerHTML">
-                    <input type="file" name="files" class="file-input" multiple accept=".txt,.pdf,.doc,.docx">
-                    <button type="submit" class="upload-button">Upload Documents</button>
+                <form class="upload-form" hx-post="/documents/upload" hx-target="#upload-result" hx-swap="innerHTML" hx-encoding="multipart/form-data">
+                    <input type="file" name="file" class="file-input" accept=".txt,.pdf,.doc,.docx,.md" id="file-input">
+                    <input type="hidden" name="filename" id="filename-input">
+                    <button type="submit" class="upload-button" id="upload-button" disabled>Upload Document</button>
                 </form>
                 <div id="upload-result"></div>
             </div>
@@ -128,6 +130,20 @@
                 setTimeout(() => {
                     document.getElementById('upload-result').innerHTML = '';
                 }, 3000);
+            }
+        });
+
+        // Enable/disable upload button based on file selection
+        document.getElementById('file-input').addEventListener('change', function(e) {
+            const uploadButton = document.getElementById('upload-button');
+            const filenameInput = document.getElementById('filename-input');
+            
+            if (e.target.files.length > 0) {
+                uploadButton.disabled = false;
+                filenameInput.value = e.target.files[0].name;
+            } else {
+                uploadButton.disabled = true;
+                filenameInput.value = '';
             }
         });
     </script>
