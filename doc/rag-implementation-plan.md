@@ -42,12 +42,12 @@ Extend existing Quarkus + LangChain4j + Ollama chat application with RAG (Retrie
 - [x] REST endpoints for listing/deleting documents
 - [x] Remove document chunks from vector store on deletion
 
-### Step 7: Docker Containerization ⏳
-- [ ] Create docker-compose.yml with Ollama, Chroma, and application
-- [ ] Configure Ollama with required models (mistral:7b-instruct-q4_K_M, nomic-embed-text)
-- [ ] Set up persistent volumes for Ollama models and Chroma data
-- [ ] Update application configuration for containerized services
-- [ ] Add development and production docker-compose variants
+### Step 7: Docker Containerization ✅
+- [x] Create docker-compose.yml with Ollama, Chroma, and application
+- [x] Configure Ollama with required models (mistral:7b-instruct-q4_K_M, nomic-embed-text)
+- [x] Set up persistent volumes for Ollama models and Chroma data
+- [x] Update application configuration for containerized services
+- [x] Add development and production docker-compose variants
 
 ## Status Legend
 - ⏳ Not started

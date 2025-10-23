@@ -1,0 +1,82 @@
+services:
+  ollama:
+    image: ollama/ollama:latest
+    container_name: quarkusai-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-data:/root/.ollama
+    environment:
+      - OLLAMA_HOST=0.0.0.0
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    networks:
+      - quarkusai-network
+
+  chroma:
+    image: chromadb/chroma:0.4.15
+    container_name: quarkusai-chroma
+    ports:
+      - "8000:8000"
+    volumes:
+      - chroma-data:/chroma/chroma
+    environment:
+      - CHROMA_SERVER_HOST=0.0.0.0
+      - CHROMA_SERVER_HTTP_PORT=8000
+    healthcheck:
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:8000/api/v1/heartbeat')"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    networks:
+      - quarkusai-network
+
+  app:
+    build:
+      context: .
+      dockerfile: src/main/docker/Dockerfile.jvm
+    container_name: quarkusai-app
+    ports:
+      - "8080:8080"
+    environment:
+      - QUARKUS_LANGCHAIN4J_OLLAMA_BASE_URL=http://ollama:11434
+      - QUARKUS_LANGCHAIN4J_CHROMA_URL=http://chroma:8000
+    depends_on:
+      ollama:
+        condition: service_healthy
+      chroma:
+        condition: service_healthy
+    networks:
+      - quarkusai-network
+
+  model-loader:
+    image: ollama/ollama:latest
+    container_name: quarkusai-model-loader
+    volumes:
+      - ollama-data:/root/.ollama
+    environment:
+      - OLLAMA_HOST=http://ollama:11434
+    depends_on:
+      ollama:
+        condition: service_healthy
+    entrypoint: ["/bin/sh", "-c"]
+    command: >
+      "sleep 10 &&
+       OLLAMA_HOST=http://ollama:11434 ollama pull mistral:7b-instruct-q2_K &&
+       OLLAMA_HOST=http://ollama:11434 ollama pull all-minilm &&
+       echo 'Models loaded successfully'"
+    networks:
+      - quarkusai-network
+
+volumes:
+  ollama-data:
+  chroma-data:
+
+networks:
+  quarkusai-network:
+    driver: bridge

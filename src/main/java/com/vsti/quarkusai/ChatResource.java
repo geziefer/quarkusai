@@ -5,6 +5,8 @@ import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 
+import java.util.List;
+
 @Path("/")
 public class ChatResource {
 
@@ -13,6 +15,9 @@ public class ChatResource {
 
     @Inject
     Template message;
+
+    @Inject
+    ChatAiService aiService;
 
     @Inject
     RagChatService ragChatService;
@@ -28,10 +33,11 @@ public class ChatResource {
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     @Produces(MediaType.TEXT_HTML)
     public String sendMessage(@FormParam("message") String userMessage) {
-        RagChatService.ChatResponse response = ragChatService.chat(userMessage);
+        // Temporarily bypass RAG to test basic chat
+        String botResponse = aiService.chat(userMessage);
         return message.data("userMessage", userMessage)
-                     .data("botResponse", response.response())
-                     .data("sources", response.sources())
+                     .data("botResponse", botResponse)
+                     .data("sources", List.of()) // Empty sources for now
                      .render();
     }
 }
