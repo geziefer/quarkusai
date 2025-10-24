@@ -38,15 +38,30 @@ public class DocumentProcessingService {
     @PostConstruct
     void initialize() {
         try {
-            // Try a simple search to initialize the collection if needed
-            embeddingStore.search(EmbeddingSearchRequest.builder()
-                    .queryEmbedding(embeddingModel.embed("init").content())
-                    .maxResults(1)
+            // Search for all documents to rebuild metadata from existing embeddings
+            var searchResult = embeddingStore.search(EmbeddingSearchRequest.builder()
+                    .queryEmbedding(embeddingModel.embed("document").content())
+                    .maxResults(1000)
                     .minScore(0.0)
                     .build());
+            
+            // Rebuild document metadata from stored segments
+            searchResult.matches().forEach(match -> {
+                var segment = match.embedded();
+                var metadata = segment.metadata();
+                String documentId = metadata.getString("documentId");
+                String filename = metadata.getString("filename");
+                
+                if (documentId != null && filename != null && !documents.containsKey(documentId)) {
+                    // Create metadata for restored document
+                    DocumentMetadata docMetadata = DocumentMetadata.create(documentId, filename, "text/plain", 0);
+                    documents.put(documentId, docMetadata);
+                }
+            });
+            
+            System.out.println("Restored " + documents.size() + " documents from vector store");
         } catch (Exception e) {
-            // Collection creation or search failed, but that's okay for initialization
-            System.out.println("Collection initialization completed (may have been created)");
+            System.out.println("Collection initialization completed: " + e.getMessage());
         }
     }
 
