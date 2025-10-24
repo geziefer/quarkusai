@@ -66,6 +66,19 @@ public class DocumentProcessingService {
     }
 
     public DocumentMetadata processDocument(String filename, String contentType, long size, InputStream inputStream) throws IOException {
+        // Check for existing document with same filename and remove from metadata only
+        String existingDocumentId = documents.values().stream()
+            .filter(doc -> doc.filename().equals(filename))
+            .map(DocumentMetadata::id)
+            .findFirst()
+            .orElse(null);
+        
+        if (existingDocumentId != null) {
+            // Remove from metadata maps (vector store entries will remain but become orphaned)
+            documents.remove(existingDocumentId);
+            documentSegmentIds.remove(existingDocumentId);
+        }
+        
         String documentId = UUID.randomUUID().toString();
         
         try {
