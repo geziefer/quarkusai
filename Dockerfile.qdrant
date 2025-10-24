@@ -1,0 +1,17 @@
+FROM qdrant/qdrant:latest
+
+# Install curl for the initialization script
+USER root
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+
+# Copy initialization script
+COPY init-collection.sh /docker-entrypoint-initdb.d/
+
+# Make script executable
+RUN chmod +x /docker-entrypoint-initdb.d/init-collection.sh
+
+# Copy custom entrypoint
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+ENTRYPOINT ["/entrypoint.sh"]
