@@ -23,18 +23,16 @@ services:
     networks:
       - quarkusai-network
 
-  chroma:
-    image: chromadb/chroma:0.4.15
-    container_name: quarkusai-chroma
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: quarkusai-qdrant
     ports:
-      - "8000:8000"
+      - "6333:6333"
+      - "6334:6334"
     volumes:
-      - chroma-data:/chroma/chroma
-    environment:
-      - CHROMA_SERVER_HOST=0.0.0.0
-      - CHROMA_SERVER_HTTP_PORT=8000
+      - qdrant-data:/qdrant/storage
     healthcheck:
-      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:8000/api/v1/heartbeat')"]
+      test: ["CMD", "bash", "-c", "echo > /dev/tcp/localhost/6333"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -51,11 +49,12 @@ services:
       - "8080:8080"
     environment:
       - QUARKUS_LANGCHAIN4J_OLLAMA_BASE_URL=http://ollama:11434
-      - QUARKUS_LANGCHAIN4J_CHROMA_URL=http://chroma:8000
+      - QUARKUS_LANGCHAIN4J_QDRANT_HOST=qdrant
+      - QUARKUS_LANGCHAIN4J_QDRANT_PORT=6334
     depends_on:
       ollama:
         condition: service_healthy
-      chroma:
+      qdrant:
         condition: service_healthy
     networks:
       - quarkusai-network
@@ -73,15 +72,15 @@ services:
     entrypoint: ["/bin/sh", "-c"]
     command: >
       "sleep 10 &&
-       OLLAMA_HOST=http://ollama:11434 ollama pull mistral:7b-instruct-q2_K &&
-       OLLAMA_HOST=http://ollama:11434 ollama pull all-minilm &&
+       OLLAMA_HOST=http://ollama:11434 ollama pull mistral:latest &&
+       OLLAMA_HOST=http://ollama:11434 ollama pull nomic-embed-text:latest &&
        echo 'Models loaded successfully'"
     networks:
       - quarkusai-network
 
 volumes:
   ollama-data:
-  chroma-data:
+  qdrant-data:
 
 networks:
   quarkusai-network:

@@ -38,6 +38,29 @@ public class DocumentProcessingService {
     @PostConstruct
     void initialize() {
         try {
+            // Detect embedding dimensions by creating a test embedding
+            Embedding testEmbedding = embeddingModel.embed("test").content();
+            int dimensions = testEmbedding.vector().length;
+            
+            // Create collection via REST API if it doesn't exist
+            String qdrantHost = System.getenv("QUARKUS_LANGCHAIN4J_QDRANT_HOST");
+            if (qdrantHost == null) qdrantHost = "localhost";
+            
+            java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
+            java.net.http.HttpRequest request = java.net.http.HttpRequest.newBuilder()
+                .uri(java.net.URI.create("http://" + qdrantHost + ":6333/collections/documents"))
+                .header("Content-Type", "application/json")
+                .PUT(java.net.http.HttpRequest.BodyPublishers.ofString(
+                    "{\"vectors\": {\"size\": " + dimensions + ", \"distance\": \"Cosine\"}}"))
+                .build();
+            
+            var response = client.send(request, java.net.http.HttpResponse.BodyHandlers.ofString());
+            System.out.println("Collection creation response: " + response.body());
+        } catch (Exception e) {
+            System.out.println("Collection creation: " + e.getMessage());
+        }
+        
+        try {
             // Search for all documents to rebuild metadata from existing embeddings
             var searchResult = embeddingStore.search(EmbeddingSearchRequest.builder()
                     .queryEmbedding(embeddingModel.embed("document").content())

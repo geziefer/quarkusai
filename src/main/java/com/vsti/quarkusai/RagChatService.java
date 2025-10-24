@@ -25,39 +25,45 @@ public class RagChatService {
     EmbeddingStore<TextSegment> embeddingStore;
 
     public ChatResponse chat(String userMessage) {
-        // Generate embedding for user query
-        Embedding queryEmbedding = embeddingModel.embed(userMessage).content();
-        
-        // Search for relevant documents with higher threshold
-        List<EmbeddingMatch<TextSegment>> matches = embeddingStore.search(EmbeddingSearchRequest.builder()
-                .queryEmbedding(queryEmbedding)
-                .maxResults(3)
-                .minScore(0.75)
-                .build()).matches();
-        
-        // Only use matches that actually meet our threshold
-        List<EmbeddingMatch<TextSegment>> relevantMatches = matches.stream()
-            .filter(match -> match.score() >= 0.75)
-            .toList();
-        
-        // Build context from relevant documents
-        String context = relevantMatches.stream()
-            .map(match -> match.embedded().text())
-            .collect(Collectors.joining("\n\n"));
-        
-        // Create enhanced prompt with context
-        String enhancedPrompt = buildPromptWithContext(userMessage, context);
-        
-        // Get AI response
-        String aiResponse = aiService.chat(enhancedPrompt);
-        
-        // Only extract sources if we have relevant matches
-        List<String> sources = relevantMatches.isEmpty() ? List.of() : relevantMatches.stream()
-            .map(match -> match.embedded().metadata().getString("filename"))
-            .distinct()
-            .collect(Collectors.toList());
-        
-        return new ChatResponse(aiResponse, sources);
+        try {
+            // Generate embedding for user query
+            Embedding queryEmbedding = embeddingModel.embed(userMessage).content();
+            
+            // Search for relevant documents with higher threshold
+            List<EmbeddingMatch<TextSegment>> matches = embeddingStore.search(EmbeddingSearchRequest.builder()
+                    .queryEmbedding(queryEmbedding)
+                    .maxResults(3)
+                    .minScore(0.75)
+                    .build()).matches();
+            
+            // Only use matches that actually meet our threshold
+            List<EmbeddingMatch<TextSegment>> relevantMatches = matches.stream()
+                .filter(match -> match.score() >= 0.75)
+                .toList();
+            
+            // Build context from relevant documents
+            String context = relevantMatches.stream()
+                .map(match -> match.embedded().text())
+                .collect(Collectors.joining("\n\n"));
+            
+            // Create enhanced prompt with context
+            String enhancedPrompt = buildPromptWithContext(userMessage, context);
+            
+            // Get AI response
+            String aiResponse = aiService.chat(enhancedPrompt);
+            
+            // Only extract sources if we have relevant matches
+            List<String> sources = relevantMatches.isEmpty() ? List.of() : relevantMatches.stream()
+                .map(match -> match.embedded().metadata().getString("filename"))
+                .distinct()
+                .collect(Collectors.toList());
+            
+            return new ChatResponse(aiResponse, sources);
+        } catch (Exception e) {
+            // If embedding or vector search fails, fall back to regular chat
+            String aiResponse = aiService.chat(userMessage);
+            return new ChatResponse(aiResponse, List.of());
+        }
     }
 
     private String buildPromptWithContext(String userMessage, String context) {
