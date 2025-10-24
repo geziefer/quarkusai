@@ -17,6 +17,9 @@ import org.apache.tika.exception.TikaException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -69,17 +72,39 @@ public class DocumentProcessingService {
                     .build());
             
             // Rebuild document metadata from stored segments
+            Map<String, Integer> chunkCounts = new HashMap<>();
+            Map<String, List<String>> segmentIdsByDoc = new HashMap<>();
+            
             searchResult.matches().forEach(match -> {
                 var segment = match.embedded();
                 var metadata = segment.metadata();
                 String documentId = metadata.getString("documentId");
                 String filename = metadata.getString("filename");
+                String segmentId = match.embeddingId();
                 
-                if (documentId != null && filename != null && !documents.containsKey(documentId)) {
-                    // Create metadata for restored document
-                    DocumentMetadata docMetadata = DocumentMetadata.create(documentId, filename, "text/plain", 0);
-                    documents.put(documentId, docMetadata);
+                if (documentId != null && filename != null && segmentId != null) {
+                    chunkCounts.put(documentId, chunkCounts.getOrDefault(documentId, 0) + 1);
+                    segmentIdsByDoc.computeIfAbsent(documentId, k -> new ArrayList<>()).add(segmentId);
+                    
+                    if (!documents.containsKey(documentId)) {
+                        // Create metadata for restored document
+                        DocumentMetadata docMetadata = DocumentMetadata.create(documentId, filename, "text/plain", 0);
+                        documents.put(documentId, docMetadata);
+                    }
                 }
+            });
+            
+            // Update chunk counts and segment IDs
+            chunkCounts.forEach((docId, count) -> {
+                DocumentMetadata existing = documents.get(docId);
+                if (existing != null) {
+                    documents.put(docId, existing.withChunkCount(count));
+                }
+            });
+            
+            // Restore segment ID tracking
+            segmentIdsByDoc.forEach((docId, segmentIds) -> {
+                documentSegmentIds.put(docId, segmentIds);
             });
             
             System.out.println("Restored " + documents.size() + " documents from vector store");

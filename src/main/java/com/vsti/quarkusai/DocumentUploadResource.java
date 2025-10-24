@@ -70,7 +70,7 @@ public class DocumentUploadResource {
     public Response deleteDocument(@PathParam("documentId") String documentId) {
         boolean deleted = documentService.deleteDocument(documentId);
         if (deleted) {
-            return Response.noContent().build();
+            return Response.ok("").build();
         } else {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
