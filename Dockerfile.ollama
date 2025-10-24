@@ -1,0 +1,11 @@
+FROM ollama/ollama
+
+# Pull models during build
+RUN ollama serve & \
+    sleep 10 && \
+    ollama pull mistral && \
+    ollama pull nomic-embed-text && \
+    pkill ollama
+
+# Start ollama serve by default
+CMD ["serve"]

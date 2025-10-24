@@ -39,27 +39,34 @@ public class DocumentProcessingService {
 
     @PostConstruct
     void initialize() {
-        try {
-            // Detect embedding dimensions by creating a test embedding
-            Embedding testEmbedding = embeddingModel.embed("test").content();
-            int dimensions = testEmbedding.vector().length;
-            
-            // Create collection via REST API if it doesn't exist
-            String qdrantHost = System.getenv("QUARKUS_LANGCHAIN4J_QDRANT_HOST");
-            if (qdrantHost == null) qdrantHost = "localhost";
-            
-            java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
-            java.net.http.HttpRequest request = java.net.http.HttpRequest.newBuilder()
-                .uri(java.net.URI.create("http://" + qdrantHost + ":6333/collections/documents"))
-                .header("Content-Type", "application/json")
-                .PUT(java.net.http.HttpRequest.BodyPublishers.ofString(
-                    "{\"vectors\": {\"size\": " + dimensions + ", \"distance\": \"Cosine\"}}"))
-                .build();
-            
-            var response = client.send(request, java.net.http.HttpResponse.BodyHandlers.ofString());
-            System.out.println("Collection creation response: " + response.body());
-        } catch (Exception e) {
-            System.out.println("Collection creation: " + e.getMessage());
+        // Retry collection creation with delays
+        for (int i = 0; i < 5; i++) {
+            try {
+                Thread.sleep(i * 2000); // Wait 0, 2, 4, 6, 8 seconds
+                
+                // Detect embedding dimensions by creating a test embedding
+                Embedding testEmbedding = embeddingModel.embed("test").content();
+                int dimensions = testEmbedding.vector().length;
+                
+                // Create collection via REST API if it doesn't exist
+                String qdrantHost = System.getenv("QUARKUS_LANGCHAIN4J_QDRANT_HOST");
+                if (qdrantHost == null) qdrantHost = "localhost";
+                
+                java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
+                java.net.http.HttpRequest request = java.net.http.HttpRequest.newBuilder()
+                    .uri(java.net.URI.create("http://" + qdrantHost + ":6333/collections/documents"))
+                    .header("Content-Type", "application/json")
+                    .PUT(java.net.http.HttpRequest.BodyPublishers.ofString(
+                        "{\"vectors\": {\"size\": " + dimensions + ", \"distance\": \"Cosine\"}}"))
+                    .build();
+                
+                var response = client.send(request, java.net.http.HttpResponse.BodyHandlers.ofString());
+                System.out.println("Collection creation response: " + response.body());
+                break; // Success, exit retry loop
+            } catch (Exception e) {
+                System.out.println("Collection creation attempt " + (i+1) + ": " + e.getMessage());
+                if (i == 4) System.out.println("Collection creation failed after 5 attempts");
+            }
         }
         
         try {

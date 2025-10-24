@@ -1,86 +1,46 @@
 services:
-  ollama:
-    image: ollama/ollama:latest
-    container_name: quarkusai-ollama
-    ports:
-      - "11434:11434"
-    volumes:
-      - ollama-data:/root/.ollama
-    environment:
-      - OLLAMA_HOST=0.0.0.0
-    deploy:
-      resources:
-        limits:
-          memory: 8G
-        reservations:
-          memory: 2G
-    healthcheck:
-      test: ["CMD", "ollama", "list"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 30s
-    networks:
-      - quarkusai-network
-
   qdrant:
-    image: qdrant/qdrant:latest
-    container_name: quarkusai-qdrant
+    image: qdrant/qdrant
+    container_name: qdrant
     ports:
       - "6333:6333"
       - "6334:6334"
     volumes:
-      - qdrant-data:/qdrant/storage
-    healthcheck:
-      test: ["CMD", "bash", "-c", "echo > /dev/tcp/localhost/6333"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 30s
+      - qdrant_data:/qdrant/storage
     networks:
       - quarkusai-network
 
-  app:
+  ollama:
     build:
       context: .
-      dockerfile: src/main/docker/Dockerfile.jvm
+      dockerfile: Dockerfile.ollama
+    container_name: ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    networks:
+      - quarkusai-network
+
+  quarkusai-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: quarkusai-app
     ports:
       - "8080:8080"
     environment:
-      - QUARKUS_LANGCHAIN4J_OLLAMA_BASE_URL=http://ollama:11434
       - QUARKUS_LANGCHAIN4J_QDRANT_HOST=qdrant
-      - QUARKUS_LANGCHAIN4J_QDRANT_PORT=6334
+      - QUARKUS_LANGCHAIN4J_OLLAMA_BASE_URL=http://ollama:11434
     depends_on:
-      ollama:
-        condition: service_healthy
-      qdrant:
-        condition: service_healthy
-    networks:
-      - quarkusai-network
-
-  model-loader:
-    image: ollama/ollama:latest
-    container_name: quarkusai-model-loader
-    volumes:
-      - ollama-data:/root/.ollama
-    environment:
-      - OLLAMA_HOST=http://ollama:11434
-    depends_on:
-      ollama:
-        condition: service_healthy
-    entrypoint: ["/bin/sh", "-c"]
-    command: >
-      "sleep 10 &&
-       OLLAMA_HOST=http://ollama:11434 ollama pull mistral:latest &&
-       OLLAMA_HOST=http://ollama:11434 ollama pull nomic-embed-text:latest &&
-       echo 'Models loaded successfully'"
+      - qdrant
+      - ollama
     networks:
       - quarkusai-network
 
 volumes:
-  ollama-data:
-  qdrant-data:
+  qdrant_data:
+  ollama_data:
 
 networks:
   quarkusai-network:
