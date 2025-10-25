@@ -119,6 +119,35 @@ Open your browser and navigate to: http://localhost:8080
 2. **Chat**: Ask questions in the chat interface - the AI will reference uploaded documents when relevant
 3. **Manage Documents**: View uploaded documents and delete them as needed
 
+## Testing
+
+The project includes both unit tests and integration tests that are properly separated:
+
+### Unit Tests
+Run unit tests (fast, no external dependencies required):
+```bash
+./mvnw test
+```
+
+### Integration Tests
+Integration tests require the full environment (Qdrant, Ollama) to be running.
+
+**Option 1: Using the provided script**
+```bash
+./run-integration-tests.sh
+```
+
+**Option 2: Using Maven profile directly**
+```bash
+./mvnw test -Pintegration-tests
+```
+
+**Prerequisites for Integration Tests:**
+- Docker containers must be running: `docker-compose up -d`
+- All services (Qdrant, Ollama) must be healthy and accessible
+
+The integration tests are excluded from regular builds to prevent failures in CI/CD environments where the complete infrastructure isn't available.
+
 ## Configuration
 
 Key configuration properties in `src/main/resources/application.properties`:

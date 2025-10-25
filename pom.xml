@@ -130,6 +130,12 @@
                         <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
                         <maven.home>${maven.home}</maven.home>
                     </systemPropertyVariables>
+                    <!-- Exclude integration tests from regular unit test runs -->
+                    <excludes>
+                        <exclude>**/integration-test/**</exclude>
+                        <exclude>**/*IntegrationTest.java</exclude>
+                        <exclude>**/*IT.java</exclude>
+                    </excludes>
                 </configuration>
             </plugin>
             <plugin>
@@ -155,6 +161,54 @@
     </build>
 
     <profiles>
+        <profile>
+            <id>integration-tests</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>build-helper-maven-plugin</artifactId>
+                        <version>3.4.0</version>
+                        <executions>
+                            <execution>
+                                <id>add-integration-test-sources</id>
+                                <phase>generate-test-sources</phase>
+                                <goals>
+                                    <goal>add-test-source</goal>
+                                </goals>
+                                <configuration>
+                                    <sources>
+                                        <source>src/integration-test/java</source>
+                                    </sources>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <version>${surefire-plugin.version}</version>
+                        <configuration>
+                            <systemPropertyVariables>
+                                <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
+                                <maven.home>${maven.home}</maven.home>
+                            </systemPropertyVariables>
+                            <!-- Only run integration tests from integration-test folder -->
+                            <includes>
+                                <include>**/*IntegrationTest.java</include>
+                                <include>**/*IT.java</include>
+                            </includes>
+                            <!-- Don't exclude anything when running integration tests -->
+                            <excludes>
+                                <exclude>**/ChatResourceTest.java</exclude>
+                                <exclude>**/DocumentProcessingServiceTest.java</exclude>
+                                <exclude>**/RagChatServiceTest.java</exclude>
+                                <exclude>**/DocumentMetadataTest.java</exclude>
+                            </excludes>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
         <profile>
             <id>native</id>
             <activation>
