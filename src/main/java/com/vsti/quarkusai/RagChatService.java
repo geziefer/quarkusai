@@ -33,12 +33,12 @@ public class RagChatService {
             List<EmbeddingMatch<TextSegment>> matches = embeddingStore.search(EmbeddingSearchRequest.builder()
                     .queryEmbedding(queryEmbedding)
                     .maxResults(3)
-                    .minScore(0.75)
+                    .minScore(0.80)
                     .build()).matches();
             
             // Only use matches that actually meet our threshold
             List<EmbeddingMatch<TextSegment>> relevantMatches = matches.stream()
-                .filter(match -> match.score() >= 0.75)
+                .filter(match -> match.score() >= 0.80)
                 .toList();
             
             // Build context from relevant documents
