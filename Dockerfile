@@ -1,7 +1,11 @@
 FROM maven:3.9.9-eclipse-temurin-21 AS build
 WORKDIR /app
 COPY pom.xml .
-COPY src ./src
+RUN mvn dependency:go-offline -q
+COPY src/main/java ./src/main/java
+COPY src/main/resources/application.properties ./src/main/resources/application.properties
+RUN mvn compile -q
+COPY src/main/resources ./src/main/resources
 RUN mvn package -DskipTests
 
 FROM registry.access.redhat.com/ubi9/openjdk-21:1.23

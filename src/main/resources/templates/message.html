@@ -3,11 +3,10 @@
         {botResponse}
         {#if sources && !sources.isEmpty}
         <div class="sources">
-            <small><strong>Sources:</strong> 
+            <strong>📚 Sources:</strong> 
             {#for source in sources}
-                {source}{#if source_hasNext}, {/if}
+                <span style="background: rgba(255, 75, 75, 0.1); padding: 0.2rem 0.4rem; border-radius: 4px; font-size: 0.8rem; margin-right: 0.25rem; display: inline-block; margin-top: 0.25rem;">{source}</span>{#if source_hasNext} {/if}
             {/for}
-            </small>
         </div>
         {/if}
     </div>

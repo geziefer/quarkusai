@@ -1,85 +1,71 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Quarkus AI Chat</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>valantic AI Chat - RAG Assistant</title>
     <script src="https://unpkg.com/htmx.org@1.9.10"></script>
-    <style>
-        body { font-family: Arial, sans-serif; max-width: 1000px; margin: 0 auto; padding: 20px; }
-        .container { display: flex; gap: 20px; }
-        .chat-section { flex: 2; }
-        .documents-section { flex: 1; border: 1px solid #ddd; border-radius: 8px; padding: 15px; }
-        #chat-container { border: 1px solid #ddd; border-radius: 8px; height: 400px; overflow-y: auto; padding: 10px; margin-bottom: 20px; }
-        .message { margin: 10px 0; display: flex; }
-        .user-message { justify-content: flex-end; }
-        .bot-message { justify-content: flex-start; }
-        .message-content { max-width: 70%; padding: 10px; border-radius: 10px; }
-        .user-message .message-content { background-color: #007bff; color: white; }
-        .bot-message .message-content { background-color: #f1f1f1; color: black; }
-        .sources { margin-top: 8px; padding-top: 8px; border-top: 1px solid #ddd; color: #666; }
-        #message-form { display: flex; gap: 10px; }
-        #message-input { flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 4px; }
-        #send-button { padding: 10px 20px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
-        #send-button:hover { background-color: #0056b3; }
-        .upload-section { margin-bottom: 20px; }
-        .upload-form { display: flex; flex-direction: column; gap: 10px; }
-        .file-input { padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
-        .upload-button { padding: 8px 16px; background-color: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; }
-        .upload-button:hover:not(:disabled) { background-color: #218838; }
-        .upload-button:disabled { background-color: #6c757d; cursor: not-allowed; }
-        .document-list { margin-top: 15px; }
-        .document-item { display: flex; justify-content: space-between; align-items: center; padding: 8px; border: 1px solid #eee; border-radius: 4px; margin-bottom: 5px; }
-        .delete-button { background-color: #dc3545; color: white; border: none; border-radius: 3px; padding: 4px 8px; cursor: pointer; font-size: 12px; }
-        .delete-button:hover { background-color: #c82333; }
-        .loading {
-            display: inline-block;
-            position: relative;
-        }
-        .loading::after {
-            content: '';
-            display: inline-block;
-            width: 4px;
-            height: 4px;
-            border-radius: 50%;
-            background-color: #666;
-            animation: loading 1.4s infinite ease-in-out both;
-            margin-left: 4px;
-        }
-        @keyframes loading {
-            0%, 80%, 100% { transform: scale(0); }
-            40% { transform: scale(1); }
-        }
-    </style>
+    <link rel="stylesheet" href="valantic-styles.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🤖</text></svg>">
 </head>
 <body>
-    <h1>Quarkus AI Chat with RAG</h1>
-    <div class="container">
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <div class="logo-icon">
+                    <svg width="120" height="30" viewBox="0 0 101 22" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                        <path fill-rule="evenodd" clip-rule="evenodd" d="M83.302.1c-1.37 0-2.53 1.158-2.53 2.53 0 1.37 1.16 2.529 2.53 2.529 1.372 0 2.53-1.159 2.53-2.53 0-1.371-1.158-2.53-2.53-2.53ZM32.487 21.284h4.17V.146l-4.17 1.252v19.886Zm31.142-14.96c-1.283 0-2.508.4-3.543 1.155l-.22.16v-.9h-4.17v14.546h4.17V13.3a2.81 2.81 0 0 1 2.806-2.806 2.81 2.81 0 0 1 2.806 2.806v7.984h4.17v-8.94c0-3.32-2.7-6.02-6.02-6.02Zm30.73 11.265c1.302 0 2.411-.611 2.934-1.605l3.637 2.082c-1.296 2.245-3.778 3.634-6.512 3.634-4.4 0-7.717-3.305-7.717-7.688 0-4.382 3.318-7.687 7.717-7.687 2.728 0 5.21 1.377 6.511 3.605l-3.639 2.111c-.553-1.008-1.637-1.606-2.931-1.606-2.021 0-3.488 1.505-3.488 3.577 0 2.073 1.467 3.577 3.488 3.577ZM85.387 6.74v14.545h-4.17V6.74h4.17Zm-8.536-4.715-4.17 1.25V6.74h-2.372v3.992h2.372v5.385c0 2.023.418 3.344 1.318 4.156 1.089.984 2.967 1.31 5.905 1.025v-3.76c-1.338.074-2.21.02-2.686-.426-.247-.233-.367-.559-.367-.995v-5.385h3.053V6.74H76.85V2.025ZM42.14 14.012c0 2.246 1.473 3.754 3.665 3.754 2.193 0 3.666-1.508 3.666-3.754s-1.473-3.755-3.666-3.755c-2.192 0-3.665 1.51-3.665 3.755Zm7.33-5.648-.242-.279c-1.014-1.168-2.465-1.76-4.312-1.76-1.852 0-3.591.785-4.897 2.211-1.322 1.444-2.05 3.389-2.05 5.476s.728 4.032 2.05 5.476c1.306 1.426 3.045 2.212 4.897 2.212 1.847 0 3.298-.593 4.312-1.76l.242-.28v1.625h4.17V6.74h-4.17v1.624Zm-30.54 5.648c0 2.246 1.473 3.754 3.666 3.754 2.192 0 3.666-1.508 3.666-3.754s-1.474-3.755-3.666-3.755c-2.193 0-3.666 1.51-3.666 3.755Zm7.331-5.648-.242-.279c-1.015-1.168-2.465-1.76-4.313-1.76-1.851 0-3.59.785-4.896 2.211-1.322 1.444-2.05 3.389-2.05 5.476s.728 4.032 2.05 5.476c1.306 1.426 3.045 2.212 4.896 2.212 1.848 0 3.298-.593 4.313-1.76l.242-.28v1.625h4.17V6.74h-4.17v1.624ZM7.805 16.442l3.183-9.702h4.622L10.23 21.285H5.381L0 6.74h4.622l3.183 9.702Z"/>
+                    </svg>
+                </div>
+                <div>
+                    <div class="logo-text">vsti RAG Chat</div>
+                    <div class="subtitle">Intelligent Document Assistant</div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="main-container">
         <div class="chat-section">
             <div id="chat-container">
-                <div id="messages"></div>
+                <div id="messages">
+                    <div class="message bot-message">
+                        <div class="message-content">
+                            👋 Welcome to valantic AI Chat! I'm your intelligent document assistant. Upload documents and ask me questions about their content. I'll provide answers based on the information in your uploaded files.
+                        </div>
+                    </div>
+                </div>
             </div>
             <form id="message-form" hx-post="/chat" hx-target="#messages" hx-swap="beforeend">
-                <input type="text" id="message-input" name="message" placeholder="Type your message..." required autofocus>
+                <input type="text" id="message-input" name="message" placeholder="Ask me anything about your documents..." required autofocus>
                 <button type="submit" id="send-button">Send</button>
             </form>
         </div>
         
         <div class="documents-section">
-            <h3>Documents</h3>
+            <h3 class="section-title">Document Library</h3>
             <div class="upload-section">
                 <div class="upload-form">
-                    <input type="file" name="file" class="file-input" accept=".txt,.pdf,.doc,.docx,.md" id="file-input" multiple>
+                    <input type="file" name="file" class="file-input" accept=".txt,.pdf,.doc,.docx,.md" id="file-input" multiple title="Select documents to upload">
                     <button type="button" class="upload-button" id="upload-button" disabled>Upload Documents</button>
                 </div>
                 <div id="upload-result"></div>
             </div>
             
             <div class="document-list" hx-get="/documents/list" hx-trigger="load, upload-success from:body" hx-target="this" hx-swap="innerHTML">
-                Loading documents...
+                <div class="loading">Loading documents...</div>
             </div>
         </div>
     </div>
 
     <script>
+        // Auto-scroll chat to bottom
+        function scrollChatToBottom() {
+            const chatContainer = document.getElementById('chat-container');
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        // Handle form submission
         document.getElementById('message-form').addEventListener('submit', function(e) {
             const messageInput = document.getElementById('message-input');
             const userMessage = messageInput.value.trim();
@@ -89,26 +75,27 @@
                 const messagesDiv = document.getElementById('messages');
                 messagesDiv.innerHTML += `
                     <div class="message user-message">
-                        <div class="message-content">` + userMessage + `</div>
+                        <div class="message-content">` + userMessage.replace(/</g, '&lt;').replace(/>/g, '&gt;') + `</div>
                     </div>
                 `;
-                document.getElementById('chat-container').scrollTop = document.getElementById('chat-container').scrollHeight;
+                scrollChatToBottom();
             }
         });
 
+        // Show loading indicator before request
         document.getElementById('message-form').addEventListener('htmx:beforeRequest', function() {
-            // Show loading indicator
             const messagesDiv = document.getElementById('messages');
             messagesDiv.innerHTML += `
                 <div class="message bot-message" id="loading-message">
                     <div class="message-content">
-                        <div class="loading">Thinking...</div>
+                        <div class="loading">Analyzing your question...</div>
                     </div>
                 </div>
             `;
-            document.getElementById('chat-container').scrollTop = document.getElementById('chat-container').scrollHeight;
+            scrollChatToBottom();
         });
 
+        // Clean up after request
         document.getElementById('message-form').addEventListener('htmx:afterRequest', function() {
             // Remove loading message
             const loadingMessage = document.getElementById('loading-message');
@@ -116,12 +103,14 @@
                 loadingMessage.remove();
             }
             
-            document.getElementById('message-input').value = '';
-            document.getElementById('message-input').focus();
-            document.getElementById('chat-container').scrollTop = document.getElementById('chat-container').scrollHeight;
+            // Clear input and focus
+            const messageInput = document.getElementById('message-input');
+            messageInput.value = '';
+            messageInput.focus();
+            scrollChatToBottom();
         });
 
-        // Handle multiple file upload
+        // Handle multiple file upload with progress
         document.getElementById('upload-button').addEventListener('click', async function() {
             const fileInput = document.getElementById('file-input');
             const files = Array.from(fileInput.files);
@@ -132,6 +121,10 @@
             
             uploadButton.disabled = true;
             let successCount = 0;
+            let errorCount = 0;
+            
+            // Show progress
+            uploadResult.innerHTML = '<div class="loading">Processing documents...</div>';
             
             for (let i = 0; i < files.length; i++) {
                 const file = files[i];
@@ -149,24 +142,34 @@
                     
                     if (response.ok) {
                         successCount++;
+                    } else {
+                        errorCount++;
+                        console.error('Upload failed for', file.name, await response.text());
                     }
                 } catch (error) {
+                    errorCount++;
                     console.error('Upload failed for', file.name, error);
                 }
             }
             
+            // Reset button
             uploadButton.textContent = 'Upload Documents';
-            uploadButton.disabled = false;
-            fileInput.value = '';
             uploadButton.disabled = true;
+            fileInput.value = '';
             
-            uploadResult.innerHTML = '<div style="color: green; margin-top: 10px;">' + successCount + '/' + files.length + ' documents uploaded successfully!</div>';
+            // Show results
+            if (successCount > 0) {
+                uploadResult.innerHTML = '<div class="upload-success">✅ ' + successCount + '/' + files.length + ' documents uploaded successfully!</div>';
+                // Refresh document list
+                document.body.dispatchEvent(new CustomEvent('upload-success'));
+            } else {
+                uploadResult.innerHTML = `<div style="background: #F8D7DA; color: #721C24; padding: 0.75rem; border-radius: 8px; margin-top: 0.75rem; font-size: 0.9rem; border: 1px solid #F5C6CB;">❌ Upload failed. Please try again.</div>`;
+            }
+            
+            // Clear result message after 5 seconds
             setTimeout(() => {
                 uploadResult.innerHTML = '';
-            }, 3000);
-            
-            // Refresh document list
-            document.body.dispatchEvent(new CustomEvent('upload-success'));
+            }, 5000);
         });
 
         // Enable/disable upload button based on file selection
@@ -181,6 +184,32 @@
                 uploadButton.disabled = true;
                 uploadButton.textContent = 'Upload Documents';
             }
+        });
+
+        // Utility function to escape HTML
+        function escapeHtml(text) {
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+        }
+
+        // Handle keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Ctrl/Cmd + Enter to send message
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                const form = document.getElementById('message-form');
+                form.dispatchEvent(new Event('submit'));
+            }
+        });
+
+        // Auto-focus message input when page loads
+        window.addEventListener('load', function() {
+            document.getElementById('message-input').focus();
         });
     </script>
 </body>

@@ -1,13 +1,21 @@
 {#if documents.isEmpty}
-<div>No documents uploaded yet.</div>
+<div style="text-align: center; padding: 2rem; color: var(--valantic-text-light, #666);">
+    <div style="font-size: 2rem; margin-bottom: 0.5rem;">📄</div>
+    <div style="font-weight: 500; margin-bottom: 0.25rem;">No documents yet</div>
+    <div style="font-size: 0.9rem;">Upload documents to start chatting with your AI assistant</div>
+</div>
 {#else}
 {#for doc in documents}
 <div class="document-item">
-    <div>
-        <strong>{doc.filename}</strong><br>
-        <small>{doc.chunkCount} chunks, uploaded {doc.uploadedAt.toLocalDate}</small>
+    <div class="document-name">
+        <div style="font-weight: 500; margin-bottom: 0.25rem;">{doc.filename}</div>
+        <div style="font-size: 0.8rem; color: var(--valantic-text-light, #666);">
+            📊 {doc.chunkCount} chunks • 📅 {doc.uploadedAt.toLocalDate}
+        </div>
     </div>
-    <button class="delete-button" hx-delete="/documents/{doc.id}" hx-target="closest .document-item" hx-swap="outerHTML">Delete</button>
+    <button class="delete-button" hx-delete="/documents/{doc.id}" hx-target="closest .document-item" hx-swap="outerHTML" hx-confirm="Are you sure you want to delete '{doc.filename}'?">
+        🗑️ Delete
+    </button>
 </div>
 {/for}
 {/if}
