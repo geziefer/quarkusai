@@ -41,7 +41,7 @@ The application follows a clean architecture pattern:
 docker-compose up -d
 ```
 
-**⚠️ Note**: Initial setup downloads ~5GB of AI models and may take 10-15 minutes.
+**⚠️ Caution**: Initial setup downloads ~8.5 GB of AI models and images and takes about 15-20 minutes.
 
 This command:
 1. Builds the Quarkus application (Maven build inside Docker)
