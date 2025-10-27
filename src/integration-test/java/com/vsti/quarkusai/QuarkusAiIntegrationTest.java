@@ -58,9 +58,8 @@ class QuarkusAiIntegrationTest {
                 .get("/")
                 .then()
                 .statusCode(200)
-                .body(containsString("Quarkus AI Chat"))
-                .body(containsString("Upload Documents"))
-                .body(containsString("Chat"));
+                .body(containsString("vsti RAG Chat"))
+                .body(containsString("Document Library"));
     }
 
     @Test
