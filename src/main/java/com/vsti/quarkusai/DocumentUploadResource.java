@@ -67,10 +67,11 @@ public class DocumentUploadResource {
 
     @DELETE
     @Path("/{documentId}")
+    @Produces(MediaType.TEXT_HTML)
     public Response deleteDocument(@PathParam("documentId") String documentId) {
         boolean deleted = documentService.deleteDocument(documentId);
         if (deleted) {
-            return Response.ok("").build();
+            return Response.ok(documents.data("documents", documentService.getAllDocuments()).render()).build();
         } else {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
