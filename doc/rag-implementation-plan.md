@@ -44,7 +44,7 @@ Extend existing Quarkus + LangChain4j + Ollama chat application with RAG (Retrie
 
 ### Step 7: Docker Containerization ✅
 - [x] Create docker-compose.yml with Ollama, Chroma, and application
-- [x] Configure Ollama with required models (mistral:7b-instruct-q4_K_M, nomic-embed-text)
+- [x] Configure Ollama with required models (llama3.2:3b, nomic-embed-text)
 - [x] Set up persistent volumes for Ollama models and Chroma data
 - [x] Update application configuration for containerized services
 - [x] Add development and production docker-compose variants

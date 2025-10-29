@@ -65,6 +65,12 @@ public class ChatResource {
                 Thread.sleep(100); // Simulate streaming delay
             }
             
+            // Send sources if available
+            if (!ragResponse.sources().isEmpty()) {
+                String sourcesJson = String.join(",", ragResponse.sources());
+                eventSink.send(sse.newEvent("sources", sourcesJson));
+            }
+            
             eventSink.send(sse.newEvent("complete", ""));
             eventSink.close();
         } catch (Exception e) {

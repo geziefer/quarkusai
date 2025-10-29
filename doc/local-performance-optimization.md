@@ -112,7 +112,7 @@ brew install ollama
 ollama serve
 
 # Pull models
-ollama pull mistral
+ollama pull llama3.2:3b
 ollama pull nomic-embed-text
 
 # Update application.properties

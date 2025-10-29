@@ -29,16 +29,16 @@ public class RagChatService {
             // Generate embedding for user query
             Embedding queryEmbedding = embeddingModel.embed(userMessage).content();
             
-            // Search for relevant documents with optimized parameters
+            // Search for relevant documents with stricter parameters
             List<EmbeddingMatch<TextSegment>> matches = embeddingStore.search(EmbeddingSearchRequest.builder()
                     .queryEmbedding(queryEmbedding)
-                    .maxResults(5)
-                    .minScore(0.75)
+                    .maxResults(3)
+                    .minScore(0.82)
                     .build()).matches();
             
             // Only use matches that actually meet our threshold
             List<EmbeddingMatch<TextSegment>> relevantMatches = matches.stream()
-                .filter(match -> match.score() >= 0.75)
+                .filter(match -> match.score() >= 0.82)
                 .toList();
             
             // Build context from relevant documents
@@ -52,11 +52,13 @@ public class RagChatService {
             // Get AI response
             String aiResponse = aiService.chat(enhancedPrompt);
             
-            // Only extract sources if we have relevant matches
-            List<String> sources = relevantMatches.isEmpty() ? List.of() : relevantMatches.stream()
-                .map(match -> match.embedded().metadata().getString("filename"))
-                .distinct()
-                .collect(Collectors.toList());
+            // Only show sources if we have highly relevant matches AND the AI actually used them
+            List<String> sources = relevantMatches.isEmpty() || !contextWasUsed(aiResponse, context) ? 
+                List.of() : 
+                relevantMatches.stream()
+                    .map(match -> match.embedded().metadata().getString("filename"))
+                    .distinct()
+                    .collect(Collectors.toList());
             
             return new ChatResponse(aiResponse, sources);
         } catch (Exception e) {
@@ -81,6 +83,20 @@ public class RagChatService {
             Question: %s
             
             Answer:""", context, userMessage);
+    }
+    
+    private boolean contextWasUsed(String aiResponse, String context) {
+        if (context.isEmpty()) {
+            return false;
+        }
+        
+        // Check if the AI response indicates it couldn't find relevant information
+        String lowerResponse = aiResponse.toLowerCase();
+        return !lowerResponse.contains("doesn't contain relevant information") &&
+               !lowerResponse.contains("don't have information") &&
+               !lowerResponse.contains("not mentioned in the context") &&
+               !lowerResponse.contains("context doesn't provide") &&
+               !lowerResponse.contains("no relevant information");
     }
 
     public record ChatResponse(String response, List<String> sources) {}

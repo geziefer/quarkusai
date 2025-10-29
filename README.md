@@ -14,7 +14,7 @@ A Retrieval-Augmented Generation (RAG) chat application built with Quarkus that 
 ## Components
 
 - **Backend**: Quarkus framework with JAX-RS REST endpoints
-- **AI Model**: Ollama with Mistral for chat and nomic-embed-text for embeddings
+- **AI Model**: Ollama with Llama 3.2 3B for chat and nomic-embed-text for embeddings
 - **Vector Database**: Qdrant for storing document embeddings
 - **Document Processing**: Apache Tika for text extraction from various file formats
 - **Frontend**: HTMX-powered web interface with real-time chat and document management
@@ -45,7 +45,7 @@ docker-compose up -d
 
 This command:
 1. Builds the Quarkus application (Maven build inside Docker)
-2. Builds Ollama container with pre-loaded models (mistral, nomic-embed-text)
+2. Builds Ollama container with pre-loaded models (llama3.2:3b, nomic-embed-text)
 3. Starts all services (Qdrant, Ollama, QuarkusAI)
 
 Alternatively, use the provided setup script:
@@ -69,7 +69,7 @@ docker run -d --name quarkusai-app -p 8080:8080 \
 
 Required models in your existing Ollama:
 ```bash
-ollama pull mistral
+ollama pull llama3.2:3b
 ollama pull nomic-embed-text
 ```
 
@@ -85,7 +85,7 @@ docker run -d --name qdrant -p 6333:6333 -p 6334:6334 qdrant/qdrant
 Install and start Ollama with required models:
 ```bash
 # Install Ollama (see https://ollama.ai)
-ollama pull mistral
+ollama pull llama3.2:3b
 ollama pull nomic-embed-text
 ```
 

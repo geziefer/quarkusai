@@ -97,6 +97,7 @@
             const eventSource = new EventSource('/chat/stream?' + new URLSearchParams(\{message: userMessage}));
             let fullResponse = '';
             let hasStarted = false;
+            let sources = [];
             
             eventSource.addEventListener('token', function(event) {
                 if (!hasStarted) {
@@ -110,12 +111,30 @@
                 scrollChatToBottom();
             });
             
+            eventSource.addEventListener('sources', function(event) {
+                sources = event.data.split(',');
+            });
+            
             eventSource.addEventListener('complete', function(event) {
                 eventSource.close();
-                // Add copy button below the text
+                // Add copy button and sources below the text
                 const contentDiv = document.getElementById('streaming-content');
                 if (contentDiv) {
                     contentDiv.removeAttribute('id');
+                    
+                    // Add sources if available
+                    if (sources.length > 0) {
+                        const sourcesDiv = document.createElement('div');
+                        sourcesDiv.className = 'sources';
+                        sourcesDiv.style.marginTop = '12px';
+                        sourcesDiv.innerHTML = '<strong>📚 Sources:</strong> ' + 
+                            sources.map(source => 
+                                '<span style="background: rgba(255, 75, 75, 0.1); padding: 0.2rem 0.4rem; border-radius: 4px; font-size: 0.8rem; margin-right: 0.25rem; display: inline-block; margin-top: 0.25rem;">' + 
+                                source + '</span>'
+                            ).join(' ');
+                        contentDiv.appendChild(sourcesDiv);
+                    }
+                    
                     const buttonDiv = document.createElement('div');
                     buttonDiv.style.marginTop = '8px';
                     buttonDiv.innerHTML = '<button style="padding: 0; background: rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.1); border-radius: 4px; cursor: pointer; font-size: 12px; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;" title="Copy to clipboard">📋</button>';
@@ -126,6 +145,9 @@
                         });
                     };
                     contentDiv.appendChild(buttonDiv);
+                    
+                    // Scroll to bottom after adding copy button
+                    scrollChatToBottom();
                 }
             });
             
