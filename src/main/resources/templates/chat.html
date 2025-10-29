@@ -36,7 +36,7 @@
                     </div>
                 </div>
             </div>
-            <form id="message-form" hx-post="/chat" hx-target="#messages" hx-swap="beforeend">
+            <form id="message-form">
                 <input type="text" id="message-input" name="message" placeholder="Ask me anything about your documents..." required autofocus>
                 <button type="submit" id="send-button">Send</button>
             </form>
@@ -65,49 +65,55 @@
             chatContainer.scrollTop = chatContainer.scrollHeight;
         }
 
-        // Handle form submission
+        // Handle form submission with streaming
         document.getElementById('message-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
             const messageInput = document.getElementById('message-input');
             const userMessage = messageInput.value.trim();
             
-            if (userMessage) {
-                // Show user message immediately
-                const messagesDiv = document.getElementById('messages');
-                messagesDiv.innerHTML += `
-                    <div class="message user-message">
-                        <div class="message-content">` + userMessage.replace(/</g, '&lt;').replace(/>/g, '&gt;') + `</div>
-                    </div>
-                `;
-                scrollChatToBottom();
-            }
-        });
-
-        // Show loading indicator before request
-        document.getElementById('message-form').addEventListener('htmx:beforeRequest', function() {
+            if (!userMessage) return;
+            
+            // Show user message
             const messagesDiv = document.getElementById('messages');
             messagesDiv.innerHTML += `
-                <div class="message bot-message" id="loading-message">
-                    <div class="message-content">
-                        <div class="loading">Analyzing your question...</div>
-                    </div>
+                <div class="message user-message">
+                    <div class="message-content">` + escapeHtml(userMessage) + `</div>
                 </div>
             `;
-            scrollChatToBottom();
-        });
-
-        // Clean up after request
-        document.getElementById('message-form').addEventListener('htmx:afterRequest', function() {
-            // Remove loading message
-            const loadingMessage = document.getElementById('loading-message');
-            if (loadingMessage) {
-                loadingMessage.remove();
-            }
             
-            // Clear input and focus
-            const messageInput = document.getElementById('message-input');
-            messageInput.value = '';
-            messageInput.focus();
+            // Create bot message container for streaming
+            const botMessageDiv = document.createElement('div');
+            botMessageDiv.className = 'message bot-message';
+            botMessageDiv.innerHTML = '<div class="message-content" id="streaming-content"></div>';
+            messagesDiv.appendChild(botMessageDiv);
+            
             scrollChatToBottom();
+            
+            // Clear input
+            messageInput.value = '';
+            
+            // Start streaming
+            const eventSource = new EventSource('/chat/stream?' + new URLSearchParams(\{message: userMessage}));
+            const streamingContent = document.getElementById('streaming-content');
+            let fullResponse = '';
+            
+            eventSource.addEventListener('token', function(event) {
+                fullResponse += event.data;
+                streamingContent.textContent = fullResponse;
+                scrollChatToBottom();
+            });
+            
+            eventSource.addEventListener('complete', function(event) {
+                eventSource.close();
+                streamingContent.removeAttribute('id');
+            });
+            
+            eventSource.addEventListener('error', function(event) {
+                streamingContent.textContent = fullResponse + '\n\n[Error: ' + event.data + ']';
+                eventSource.close();
+                streamingContent.removeAttribute('id');
+            });
         });
 
         // Handle multiple file upload with progress
