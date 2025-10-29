@@ -82,10 +82,10 @@
                 </div>
             `;
             
-            // Create bot message container for streaming
+            // Create bot message container with loading animation
             const botMessageDiv = document.createElement('div');
             botMessageDiv.className = 'message bot-message';
-            botMessageDiv.innerHTML = '<div class="message-content" id="streaming-content"></div>';
+            botMessageDiv.innerHTML = '<div class="message-content"><div class="loading">Analyzing your question...</div></div>';
             messagesDiv.appendChild(botMessageDiv);
             
             scrollChatToBottom();
@@ -95,24 +95,47 @@
             
             // Start streaming
             const eventSource = new EventSource('/chat/stream?' + new URLSearchParams(\{message: userMessage}));
-            const streamingContent = document.getElementById('streaming-content');
             let fullResponse = '';
+            let hasStarted = false;
             
             eventSource.addEventListener('token', function(event) {
+                if (!hasStarted) {
+                    // Replace loading with streaming content
+                    botMessageDiv.innerHTML = '<div class="message-content" id="streaming-content"></div>';
+                    hasStarted = true;
+                }
+                
                 fullResponse += event.data;
-                streamingContent.textContent = fullResponse;
+                document.getElementById('streaming-content').textContent = fullResponse;
                 scrollChatToBottom();
             });
             
             eventSource.addEventListener('complete', function(event) {
                 eventSource.close();
-                streamingContent.removeAttribute('id');
+                // Add copy button below the text
+                const contentDiv = document.getElementById('streaming-content');
+                if (contentDiv) {
+                    contentDiv.removeAttribute('id');
+                    const buttonDiv = document.createElement('div');
+                    buttonDiv.style.marginTop = '8px';
+                    buttonDiv.innerHTML = '<button style="padding: 0; background: rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.1); border-radius: 4px; cursor: pointer; font-size: 12px; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;" title="Copy to clipboard">📋</button>';
+                    buttonDiv.querySelector('button').onclick = function() {
+                        navigator.clipboard.writeText(fullResponse).then(() => {
+                            this.innerHTML = '✓';
+                            setTimeout(() => this.innerHTML = '📋', 2000);
+                        });
+                    };
+                    contentDiv.appendChild(buttonDiv);
+                }
             });
             
             eventSource.addEventListener('error', function(event) {
-                streamingContent.textContent = fullResponse + '\n\n[Error: ' + event.data + ']';
+                if (!hasStarted) {
+                    botMessageDiv.innerHTML = '<div class="message-content">[Error: ' + event.data + ']</div>';
+                } else {
+                    document.getElementById('streaming-content').textContent = fullResponse + '\n\n[Error: ' + event.data + ']';
+                }
                 eventSource.close();
-                streamingContent.removeAttribute('id');
             });
         });
 

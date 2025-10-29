@@ -33,7 +33,7 @@ public class DocumentProcessingService {
     EmbeddingStore<TextSegment> embeddingStore;
 
     private final Tika tika = new Tika();
-    private final DocumentSplitter splitter = DocumentSplitters.recursive(500, 50);
+    private final DocumentSplitter splitter = DocumentSplitters.recursive(300, 50);
     private final ConcurrentMap<String, DocumentMetadata> documents = new ConcurrentHashMap<>();
     private final ConcurrentMap<String, List<String>> documentSegmentIds = new ConcurrentHashMap<>();
 

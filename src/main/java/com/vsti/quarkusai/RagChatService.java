@@ -29,16 +29,16 @@ public class RagChatService {
             // Generate embedding for user query
             Embedding queryEmbedding = embeddingModel.embed(userMessage).content();
             
-            // Search for relevant documents with higher threshold
+            // Search for relevant documents with optimized parameters
             List<EmbeddingMatch<TextSegment>> matches = embeddingStore.search(EmbeddingSearchRequest.builder()
                     .queryEmbedding(queryEmbedding)
-                    .maxResults(3)
-                    .minScore(0.80)
+                    .maxResults(5)
+                    .minScore(0.75)
                     .build()).matches();
             
             // Only use matches that actually meet our threshold
             List<EmbeddingMatch<TextSegment>> relevantMatches = matches.stream()
-                .filter(match -> match.score() >= 0.80)
+                .filter(match -> match.score() >= 0.75)
                 .toList();
             
             // Build context from relevant documents

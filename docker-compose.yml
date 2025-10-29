@@ -23,6 +23,16 @@ services:
       - ollama_data:/root/.ollama
     networks:
       - quarkusai-network
+    deploy:
+      resources:
+        limits:
+          memory: 8G
+        reservations:
+          memory: 4G
+    # Uncomment for GPU support (requires nvidia-docker)
+    # runtime: nvidia
+    # environment:
+    #   - NVIDIA_VISIBLE_DEVICES=all
 
   quarkusai-app:
     build:
