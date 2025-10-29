@@ -6,6 +6,7 @@ A Retrieval-Augmented Generation (RAG) chat application built with Quarkus that 
 
 - **Document Upload**: Support for multiple file formats (.txt, .pdf, .doc, .docx, .md)
 - **Multiple File Upload**: Select and upload multiple documents at once with progress tracking
+- **Streaming Chat**: Real-time streaming responses with stop functionality to cancel mid-generation
 - **RAG Chat**: Chat with AI that can reference uploaded document content
 - **Document Management**: View, delete, and manage uploaded documents
 - **Vector Search**: Semantic search through document content using embeddings
@@ -116,7 +117,7 @@ Open your browser and navigate to: http://localhost:8080
 ## Usage
 
 1. **Upload Documents**: Use the file upload section to add documents (supports multiple file selection)
-2. **Chat**: Ask questions in the chat interface - the AI will reference uploaded documents when relevant
+2. **Chat**: Ask questions in the chat interface - the AI will reference uploaded documents when relevant. Use the Stop button to cancel responses mid-generation if needed.
 3. **Manage Documents**: View uploaded documents and delete them as needed
 
 ## Testing
