@@ -55,8 +55,9 @@ public class ChatResource {
         }
         
         try {
-            // For now, simulate streaming by sending the regular response word by word
-            String response = aiService.chat(userMessage);
+            // Use RAG service for streaming to include document context
+            RagChatService.ChatResponse ragResponse = ragChatService.chat(userMessage);
+            String response = ragResponse.response();
             String[] words = response.split(" ");
             
             for (String word : words) {
