@@ -39,6 +39,7 @@
             <form id="message-form">
                 <input type="text" id="message-input" name="message" placeholder="Ask me anything about your documents..." required autofocus>
                 <button type="submit" id="send-button">Send</button>
+                <button type="button" id="stop-button" style="display: none;">Stop</button>
             </form>
         </div>
         
@@ -65,11 +66,16 @@
             chatContainer.scrollTop = chatContainer.scrollHeight;
         }
 
+        // Global variable to track current streaming
+        let currentEventSource = null;
+
         // Handle form submission with streaming
         document.getElementById('message-form').addEventListener('submit', function(e) {
             e.preventDefault();
             
             const messageInput = document.getElementById('message-input');
+            const sendButton = document.getElementById('send-button');
+            const stopButton = document.getElementById('stop-button');
             const userMessage = messageInput.value.trim();
             
             if (!userMessage) return;
@@ -90,16 +96,18 @@
             
             scrollChatToBottom();
             
-            // Clear input
+            // Clear input and update buttons
             messageInput.value = '';
+            sendButton.style.display = 'none';
+            stopButton.style.display = 'inline-block';
             
             // Start streaming
-            const eventSource = new EventSource('/chat/stream?' + new URLSearchParams(\{message: userMessage}));
+            currentEventSource = new EventSource('/chat/stream?' + new URLSearchParams(\{message: userMessage}));
             let fullResponse = '';
             let hasStarted = false;
             let sources = [];
             
-            eventSource.addEventListener('token', function(event) {
+            currentEventSource.addEventListener('token', function(event) {
                 if (!hasStarted) {
                     // Replace loading with streaming content
                     botMessageDiv.innerHTML = '<div class="message-content" id="streaming-content"></div>';
@@ -111,12 +119,16 @@
                 scrollChatToBottom();
             });
             
-            eventSource.addEventListener('sources', function(event) {
+            currentEventSource.addEventListener('sources', function(event) {
                 sources = event.data.split(',');
             });
             
-            eventSource.addEventListener('complete', function(event) {
-                eventSource.close();
+            currentEventSource.addEventListener('complete', function(event) {
+                currentEventSource.close();
+                currentEventSource = null;
+                sendButton.style.display = 'inline-block';
+                stopButton.style.display = 'none';
+                
                 // Add copy button and sources below the text
                 const contentDiv = document.getElementById('streaming-content');
                 if (contentDiv) {
@@ -151,14 +163,40 @@
                 }
             });
             
-            eventSource.addEventListener('error', function(event) {
+            currentEventSource.addEventListener('error', function(event) {
                 if (!hasStarted) {
                     botMessageDiv.innerHTML = '<div class="message-content">[Error: ' + event.data + ']</div>';
                 } else {
                     document.getElementById('streaming-content').textContent = fullResponse + '\n\n[Error: ' + event.data + ']';
                 }
-                eventSource.close();
+                currentEventSource.close();
+                currentEventSource = null;
+                sendButton.style.display = 'inline-block';
+                stopButton.style.display = 'none';
             });
+        });
+
+        // Handle stop button
+        document.getElementById('stop-button').addEventListener('click', function() {
+            if (currentEventSource) {
+                currentEventSource.close();
+                currentEventSource = null;
+                
+                // Update UI
+                document.getElementById('send-button').style.display = 'inline-block';
+                this.style.display = 'none';
+                
+                // Handle both loading and streaming states
+                const streamingContent = document.getElementById('streaming-content');
+                const loadingDiv = document.querySelector('.message.bot-message:last-child .loading');
+                
+                if (streamingContent) {
+                    streamingContent.textContent += '\n\n[Response stopped by user]';
+                    streamingContent.removeAttribute('id');
+                } else if (loadingDiv) {
+                    loadingDiv.parentElement.innerHTML = '[Response stopped by user]';
+                }
+            }
         });
 
         // Handle multiple file upload with progress

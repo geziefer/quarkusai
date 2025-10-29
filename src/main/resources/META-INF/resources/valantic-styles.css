@@ -210,7 +210,7 @@ body {
     box-shadow: 0 0 0 3px rgba(255, 75, 75, 0.1);
 }
 
-#send-button {
+#send-button, #stop-button {
     padding: 0.875rem 1.5rem;
     background: linear-gradient(136deg, var(--valantic-accent-start) 0%, var(--valantic-accent-end) 98.18%);
     color: var(--valantic-white);
@@ -224,12 +224,12 @@ body {
     min-width: 80px;
 }
 
-#send-button:hover {
+#send-button:hover, #stop-button:hover {
     transform: translateY(-1px);
     box-shadow: 0 4px 15px rgba(255, 75, 75, 0.3);
 }
 
-#send-button:active {
+#send-button:active, #stop-button:active {
     transform: translateY(0);
 }
 
@@ -416,7 +416,7 @@ body {
         gap: 0.5rem;
     }
     
-    #send-button {
+    #send-button, #stop-button {
         align-self: flex-end;
         min-width: 100px;
     }
